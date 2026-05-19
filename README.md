@@ -1,4 +1,4 @@
-# NovaChatAI 🤖
+Y5# NovaChatAI 🤖
 
 NovaChatAI is a modern AI-powered chat application built using HTML, CSS, and JavaScript. It integrates the OpenRouter API to provide real-time AI responses.
 
@@ -55,7 +55,7 @@ This project was built to demonstrate frontend development skills, API integrati
 https://github.com/japhet996sunday-cell/Novachat-ai
 
 ##  live Demo
-
+https://novachat-live.netlify.app/
 
 ## 👨‍💻 Author
 
