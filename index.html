@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="NovaChatAI — A next-generation AI chat assistant" />
+    <meta name="author" content="NovaChatAI" />
+    <title>NovaChatAI</title>
+
+    <!-- Google Fonts: Syne (display) + DM Sans (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
+      rel="stylesheet"
+    />
+
+    <!--
+      PHOSPHOR ICONS — CSS Font Version (FIXED)
+      ─────────────────────────────────────────
+      The HTML uses class-based syntax: <i class="ph ph-gear-six"></i>
+      This syntax ONLY works with the Phosphor CSS font package.
+      The JS @phosphor-icons/web package uses Web Components (<ph-gear-six>)
+      and does NOT support class-based usage at all — which is why icons were invisible.
+    -->
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" />
+
+    <link rel="stylesheet" href="Nova.css" />
+  </head>
+
+  <body>
+
+    <!-- ============================================================
+         APP SHELL — The outermost wrapper that holds the full layout.
+         The sidebar + main area sit inside this flex container.
+    ============================================================ -->
+    <div class="app-shell" id="appShell">
+
+      <!-- ============================================================
+           SIDEBAR — Collapsible on mobile, always visible on desktop.
+           Contains: logo, new-chat button, search, history list, footer.
+      ============================================================ -->
+      <aside class="sidebar" id="sidebar" aria-label="Chat history sidebar">
+
+        <!-- Sidebar Header -->
+        <div class="sidebar__header">
+          <div class="sidebar__logo">
+            <span class="logo-mark" aria-hidden="true">N</span>
+            <span class="logo-text">NovaChatAI</span>
+          </div>
+          <!-- Close button — only visible on mobile -->
+          <button
+            class="sidebar__close btn-icon"
+            id="sidebarClose"
+            aria-label="Close sidebar"
+            title="Close sidebar"
+          >
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+
+        <!-- New Chat Button (inside sidebar) -->
+        <button class="btn btn--new-chat" id="newChatBtnSidebar" aria-label="Start a new chat">
+          <i class="ph ph-plus"></i>
+          <span>New Chat</span>
+        </button>
+
+        <!-- Search Chats -->
+        <div class="sidebar__search">
+          <label for="searchChats" class="sr-only">Search conversations</label>
+          <i class="ph ph-magnifying-glass sidebar__search-icon" aria-hidden="true"></i>
+          <input
+            type="search"
+            id="searchChats"
+            class="sidebar__search-input"
+            placeholder="Search conversations…"
+            aria-label="Search your conversations"
+            autocomplete="off"
+          />
+        </div>
+
+        <!-- Chat History List -->
+        <nav class="sidebar__history" aria-label="Conversation history">
+          <p class="sidebar__section-label">Recent</p>
+          <ul class="chat-history-list" id="chatHistoryList" role="list">
+            <!-- Chat history items are injected here by JavaScript -->
+          </ul>
+          <!-- Empty state message when no history exists -->
+          <p class="sidebar__empty" id="historyEmpty" hidden>No conversations yet.</p>
+        </nav>
+
+        <!-- Sidebar Footer -->
+        <footer class="sidebar__footer">
+          <button class="sidebar__footer-btn" id="settingsBtnSidebar" aria-label="Open settings">
+            <i class="ph ph-gear-six"></i>
+            <span>Settings</span>
+          </button>
+          <!-- User profile pill -->
+          <div class="user-pill" aria-label="User profile">
+            <div class="user-pill__avatar" aria-hidden="true">U</div>
+            <span class="user-pill__name">My Account</span>
+          </div>
+        </footer>
+      </aside>
+
+      <!-- Sidebar overlay — darkens content on mobile when sidebar is open -->
+      <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+      <!-- ============================================================
+           MAIN CONTENT — Houses the navbar, chat window, and input bar.
+      ============================================================ -->
+      <div class="main-content">
+
+        <!-- ============================================================
+             TOP NAVBAR
+        ============================================================ -->
+        <header class="navbar" role="banner">
+          <!-- Left cluster: hamburger + model badge -->
+          <div class="navbar__left">
+            <!-- Hamburger — opens sidebar on mobile -->
+            <button
+              class="btn-icon navbar__hamburger"
+              id="sidebarToggle"
+              aria-label="Toggle sidebar"
+              aria-expanded="false"
+              aria-controls="sidebar"
+            >
+              <i class="ph ph-list"></i>
+            </button>
+
+            <!-- Active model badge -->
+            <div class="navbar__model-badge" title="Currently active AI model">
+              <i class="ph ph-lightning" aria-hidden="true"></i>
+              <span>Mistral 7B</span>
+            </div>
+          </div>
+
+          <!-- Center: Logo (always visible on mobile, decorative on desktop) -->
+          <div class="navbar__center">
+            <span class="navbar__logo-text" aria-label="NovaChatAI">NovaChatAI</span>
+          </div>
+
+          <!-- Right cluster: new chat, theme toggle, settings, avatar -->
+          <div class="navbar__right">
+            <!-- New Chat shortcut button -->
+            <button
+              class="btn btn--primary btn--sm"
+              id="newChatBtnNav"
+              aria-label="Start a new chat"
+            >
+              <i class="ph ph-plus" aria-hidden="true"></i>
+              <span class="btn-label">New Chat</span>
+            </button>
+
+            <!-- Dark / Light mode toggle -->
+            <button
+              class="btn-icon theme-toggle"
+              id="themeToggle"
+              aria-label="Toggle dark mode"
+              title="Toggle theme"
+            >
+              <i class="ph ph-moon" id="themeIcon"></i>
+            </button>
+
+            <!-- Settings button -->
+            <button
+              class="btn-icon"
+              id="settingsBtnNav"
+              aria-label="Open settings"
+              title="Settings"
+            >
+              <i class="ph ph-gear-six"></i>
+            </button>
+
+            <!-- User avatar -->
+            <button class="avatar-btn" aria-label="User profile" title="User profile">
+              <span aria-hidden="true">U</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- ============================================================
+             CHAT WINDOW — Scrollable message feed
+        ============================================================ -->
+        <main class="chat-window" id="chatWindow" aria-live="polite" aria-label="Chat messages">
+
+          <!-- ── WELCOME SCREEN ── Shown before any messages are sent -->
+          <section class="welcome-screen" id="welcomeScreen" aria-label="Welcome to NovaChatAI">
+            <div class="welcome-screen__inner">
+              <div class="welcome-screen__orb" aria-hidden="true"></div>
+              <h1 class="welcome-screen__title">
+                Good to see you.<br />What's on your mind?
+              </h1>
+              <p class="welcome-screen__sub">
+                Ask me anything — I'm powered by Mistral 7B and ready to help.
+              </p>
+
+              <!-- Suggestion chips — clicking pre-fills the textarea -->
+              <div class="suggestion-chips" role="list" aria-label="Conversation starters">
+                <button class="chip" role="listitem" data-prompt="Explain how neural networks work in simple terms.">
+                  <i class="ph ph-brain" aria-hidden="true"></i> Explain neural networks
+                </button>
+                <button class="chip" role="listitem" data-prompt="Write a professional email declining a meeting politely.">
+                  <i class="ph ph-envelope" aria-hidden="true"></i> Draft a polite email
+                </button>
+                <button class="chip" role="listitem" data-prompt="Give me 5 creative project ideas using JavaScript.">
+                  <i class="ph ph-code" aria-hidden="true"></i> JavaScript project ideas
+                </button>
+                <button class="chip" role="listitem" data-prompt="What are the best strategies for learning a new language fast?">
+                  <i class="ph ph-translate" aria-hidden="true"></i> Learn a language faster
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- ── MESSAGE FEED ── Messages are injected here by JavaScript -->
+          <div class="message-feed" id="messageFeed" role="log" aria-label="Messages"></div>
+
+          <!-- ── TYPING INDICATOR ── Shown while AI is responding -->
+          <div class="typing-indicator" id="typingIndicator" hidden aria-label="NovaChatAI is thinking" aria-live="assertive">
+            <div class="typing-indicator__avatar" aria-hidden="true">N</div>
+            <div class="typing-indicator__bubble">
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+              <span class="typing-label">NovaChatAI is thinking…</span>
+            </div>
+          </div>
+        </main>
+
+        <!-- ============================================================
+             INPUT AREA — Textarea + send button
+        ============================================================ -->
+        <section class="input-area" aria-label="Message input">
+          <div class="input-area__inner">
+            <!-- FIX: removed inline onsubmit="return false" — it fired before the JS
+                 submit listener and suppressed the event in some browsers. The JS
+                 listener calls e.preventDefault() itself, which is the correct place. -->
+            <form class="input-form" id="inputForm" aria-label="Send a message">
+
+              <!-- Auto-expanding textarea -->
+              <label for="messageInput" class="sr-only">Type your message</label>
+              <textarea
+                id="messageInput"
+                class="input-form__textarea"
+                placeholder="Ask anything…"
+                rows="1"
+                maxlength="4000"
+                aria-label="Message input"
+                aria-multiline="true"
+                autocomplete="off"
+                spellcheck="true"
+              ></textarea>
+
+              <!-- Character counter -->
+              <span class="char-counter" id="charCounter" aria-live="polite">0 / 4000</span>
+
+              <!-- Send button -->
+              <button
+                type="submit"
+                class="btn btn--send"
+                id="sendBtn"
+                aria-label="Send message"
+                title="Send message (Enter)"
+                disabled
+              >
+                <i class="ph ph-paper-plane-tilt" id="sendIcon"></i>
+                <!-- Spinner shown while waiting for API -->
+                <span class="send-spinner" id="sendSpinner" hidden aria-hidden="true"></span>
+              </button>
+            </form>
+
+            <!-- Disclaimer -->
+            <p class="input-area__disclaimer">
+              NovaChatAI can make mistakes. Verify important information.
+            </p>
+          </div>
+        </section>
+      </div>
+    </div><!-- /app-shell -->
+
+    <!-- ============================================================
+         SETTINGS MODAL
+    ============================================================ -->
+    <div
+      class="modal-backdrop"
+      id="settingsModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settingsTitle"
+      hidden
+    >
+      <div class="modal">
+        <div class="modal__header">
+          <h2 class="modal__title" id="settingsTitle">Settings</h2>
+          <button class="btn-icon modal__close" id="settingsClose" aria-label="Close settings">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+        <div class="modal__body">
+          <!-- API Key input -->
+          <div class="setting-group">
+            <label class="setting-label" for="apiKeyInput">
+              <i class="ph ph-key" aria-hidden="true"></i> OpenRouter API Key
+            </label>
+            <div class="api-key-wrapper">
+              <input
+                type="password"
+                id="apiKeyInput"
+                class="setting-input"
+                placeholder="sk-or-v1-…"
+                autocomplete="off"
+                aria-describedby="apiKeyHint"
+              />
+              <button class="btn-icon" id="toggleApiKeyVisibility" aria-label="Show or hide API key">
+                <i class="ph ph-eye" id="eyeIcon"></i>
+              </button>
+            </div>
+            <p class="setting-hint" id="apiKeyHint">
+              Get your free key at
+              <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer">openrouter.ai</a>.
+              Your key is stored locally and never sent anywhere except OpenRouter.
+            </p>
+          </div>
+
+          <!-- Theme preference -->
+          <div class="setting-group">
+            <label class="setting-label">
+              <i class="ph ph-paint-brush" aria-hidden="true"></i> Appearance
+            </label>
+            <div class="theme-options" role="radiogroup" aria-label="Theme selection">
+              <label class="theme-option">
+                <input type="radio" name="theme" value="dark" checked aria-label="Dark theme" />
+                <span class="theme-option__label">
+                  <i class="ph ph-moon"></i> Dark
+                </span>
+              </label>
+              <label class="theme-option">
+                <input type="radio" name="theme" value="light" aria-label="Light theme" />
+                <span class="theme-option__label">
+                  <i class="ph ph-sun"></i> Light
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Clear all data -->
+          <div class="setting-group setting-group--danger">
+            <label class="setting-label">
+              <i class="ph ph-trash" aria-hidden="true"></i> Data
+            </label>
+            <button class="btn btn--danger" id="clearAllDataBtn">
+              Clear All Conversations
+            </button>
+          </div>
+        </div>
+        <div class="modal__footer">
+          <button class="btn btn--primary" id="saveSettingsBtn">Save Settings</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         TOAST NOTIFICATION
+    ============================================================ -->
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+    <!-- FIX: defer ensures script.js executes after HTML is fully parsed,
+         making DOMContentLoaded guaranteed to fire after the listener is registered. -->
+    <script src="Nova.js" defer></script>
+  </body>
+</html>
