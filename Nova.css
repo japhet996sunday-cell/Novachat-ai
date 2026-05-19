@@ -1,0 +1,1339 @@
+/*
+|==========================================================================
+| NovaChatAI — style.css
+|==========================================================================
+| Design Philosophy: "Refined Dark-First SaaS"
+| Aesthetic: Deep navy/slate dark mode with warm amber accents.
+| Intentional, structured, readable — portfolio-grade CSS.
+|
+| Table of Contents:
+|  1. CSS Variables & Design Tokens
+|  2. CSS Reset & Base
+|  3. Utility Classes
+|  4. Typography
+|  5. Scrollbar Styling
+|  6. App Shell & Layout
+|  7. Sidebar
+|  8. Sidebar Overlay
+|  9. Navbar
+| 10. Chat Window & Welcome Screen
+| 11. Suggestion Chips
+| 12. Message Feed & Bubbles
+| 13. Typing Indicator
+| 14. Input Area
+| 15. Settings Modal
+| 16. Toast Notification
+| 17. Buttons & Icon Buttons
+| 18. Animations & Keyframes
+| 19. Light Theme Overrides
+| 20. Responsive — Tablet & Mobile
+|==========================================================================
+*/
+
+/* ==========================================================================
+   1. CSS VARIABLES & DESIGN TOKENS
+   -------------------------------------------------------------------------
+   Centralising all colours, spacing, and typography in :root lets us swap
+   the entire theme by changing a handful of variables (dark → light).
+   ========================================================================== */
+:root {
+  /* -- Brand palette -- */
+  --brand-hue: 38;                         /* warm amber */
+  --accent:        hsl(38, 94%, 60%);
+  --accent-dim:    hsl(38, 60%, 50%);
+  --accent-glow:   hsl(38, 94%, 60%, 0.20);
+
+  /* -- Surface colours (dark theme default) -- */
+  --bg-base:       #0d0f14;
+  --bg-surface:    #141720;
+  --bg-elevated:   #1b1f2e;
+  --bg-hover:      #22273a;
+  --bg-input:      #191d2b;
+
+  /* -- Border -- */
+  --border:        rgba(255,255,255,0.07);
+  --border-strong: rgba(255,255,255,0.13);
+
+  /* -- Text -- */
+  --text-primary:  #e8eaf0;
+  --text-secondary:#8b90a7;
+  --text-muted:    #555c72;
+  --text-inverse:  #0d0f14;
+
+  /* -- Semantic -- */
+  --error:    #f56565;
+  --success:  #68d391;
+  --warning:  #f6ad55;
+
+  /* -- Sidebar -- */
+  --sidebar-width: 268px;
+  --sidebar-bg:    #10131c;
+
+  /* -- Navbar -- */
+  --navbar-height: 60px;
+
+  /* -- Radius -- */
+  --radius-sm:  6px;
+  --radius-md:  12px;
+  --radius-lg:  18px;
+  --radius-xl:  24px;
+  --radius-full:9999px;
+
+  /* -- Shadow -- */
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.35);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.40);
+  --shadow-lg:  0 8px 40px rgba(0,0,0,0.55);
+
+  /* -- Typography -- */
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+  --font-mono:    'Fira Code', 'Consolas', monospace;
+
+  /* -- Transitions -- */
+  --t-fast:   150ms ease;
+  --t-normal: 250ms ease;
+  --t-slow:   380ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* -- Z-index scale -- */
+  --z-sidebar:  200;
+  --z-overlay:  190;
+  --z-navbar:   100;
+  --z-modal:    300;
+  --z-toast:    400;
+}
+
+/* ==========================================================================
+   2. CSS RESET & BASE
+   ========================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+ * THEME TRANSITION FIX
+ * Apply colour transitions to html so every CSS-variable-driven colour
+ * animates smoothly when data-theme switches between dark and light.
+ * background-color and color are the two properties that change.
+ */
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 0.9375rem; /* 15px */
+  line-height: 1.65;
+  color: var(--text-primary);
+  background-color: var(--bg-base);
+  min-height: 100vh;
+  overflow: hidden; /* App shell handles its own scroll */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Smooth colour transitions when theme switches */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+img, svg { display: block; max-width: 100%; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+ul, ol { list-style: none; }
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; border: none; background: none; }
+
+/* ==========================================================================
+   3. UTILITY CLASSES
+   ========================================================================== */
+
+/* Screen-reader only — visually hidden but accessible */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ==========================================================================
+   4. TYPOGRAPHY
+   ========================================================================== */
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.2; }
+
+/* ==========================================================================
+   5. SCROLLBAR STYLING
+   -------------------------------------------------------------------------
+   Custom scrollbars make the app feel more polished in Webkit browsers.
+   ========================================================================== */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ==========================================================================
+   6. APP SHELL & LAYOUT
+   -------------------------------------------------------------------------
+   The top-level flex container. Sidebar sits on the left; main-content
+   takes remaining width.
+   ========================================================================== */
+.app-shell {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0; /* prevents flex child overflow */
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--bg-base);
+}
+
+/* ==========================================================================
+   7. SIDEBAR
+   -------------------------------------------------------------------------
+   On desktop: always visible, fixed width.
+   On mobile: slides in from left via translateX, overlaying main content.
+   ========================================================================== */
+.sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+  transition: transform var(--t-slow);
+  z-index: var(--z-sidebar);
+}
+
+/* ── Sidebar Header ── */
+.sidebar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sidebar__logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+}
+
+/* Animated logo mark */
+.logo-mark {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+  border-radius: var(--radius-md);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--text-inverse);
+  box-shadow: 0 0 14px var(--accent-glow);
+  flex-shrink: 0;
+}
+
+.logo-text {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+/* Close button — hidden on desktop, shown on mobile */
+.sidebar__close { display: none; }
+
+/* ── New Chat Button (sidebar) ── */
+.btn--new-chat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: calc(100% - 24px);
+  margin: 14px 12px 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast);
+}
+.btn--new-chat i { font-size: 1rem; color: var(--accent); }
+.btn--new-chat:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* ── Sidebar Search ── */
+.sidebar__search {
+  position: relative;
+  margin: 14px 12px 0;
+}
+.sidebar__search-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  pointer-events: none;
+}
+.sidebar__search-input {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  outline: none;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+.sidebar__search-input::placeholder { color: var(--text-muted); }
+.sidebar__search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* ── History ── */
+.sidebar__history {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sidebar__section-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0 8px 8px;
+}
+.sidebar__empty {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 24px 8px;
+}
+
+/* ── History Item ── */
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--t-fast);
+  border: 1px solid transparent;
+  position: relative;
+  animation: slideInLeft 0.2s ease;
+}
+.history-item:hover { background-color: var(--bg-hover); }
+.history-item.active {
+  background-color: var(--bg-elevated);
+  border-color: var(--border-strong);
+}
+.history-item__icon {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+.history-item__title {
+  flex: 1;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.history-item.active .history-item__title { color: var(--text-primary); }
+
+/* Delete button — appears on hover */
+.history-item__delete {
+  opacity: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  transition: opacity var(--t-fast), color var(--t-fast), background-color var(--t-fast);
+  flex-shrink: 0;
+}
+.history-item:hover .history-item__delete { opacity: 1; }
+.history-item__delete:hover {
+  color: var(--error);
+  background-color: rgba(245, 101, 101, 0.12);
+}
+
+/* ── Sidebar Footer ── */
+.sidebar__footer {
+  flex-shrink: 0;
+  padding: 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sidebar__footer-btn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  width: 100%;
+  text-align: left;
+  transition: background-color var(--t-fast), color var(--t-fast);
+}
+.sidebar__footer-btn i { font-size: 1rem; }
+.sidebar__footer-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* User pill at bottom of sidebar */
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-md);
+  cursor: default;
+}
+.user-pill__avatar {
+  width: 30px; height: 30px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: var(--radius-full);
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.user-pill__name {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   8. SIDEBAR OVERLAY
+   -------------------------------------------------------------------------
+   On mobile, tapping outside the sidebar closes it.
+   ========================================================================== */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(2px);
+  z-index: var(--z-overlay);
+  opacity: 0;
+  transition: opacity var(--t-normal);
+}
+.sidebar-overlay.visible {
+  display: block;
+  opacity: 1;
+}
+
+/* ==========================================================================
+   9. NAVBAR
+   ========================================================================== */
+.navbar {
+  height: var(--navbar-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--bg-surface);
+  flex-shrink: 0;
+  z-index: var(--z-navbar);
+  gap: 12px;
+}
+
+.navbar__left, .navbar__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.navbar__center {
+  flex: 1;
+  text-align: center;
+}
+.navbar__logo-text {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  display: none; /* shown on mobile only */
+}
+
+/* Model badge */
+.navbar__model-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-full);
+  font-size: 0.775rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  user-select: none;
+}
+.navbar__model-badge i { color: var(--accent); font-size: 0.85rem; }
+
+/* Hamburger — hidden on desktop */
+.navbar__hamburger { display: none; }
+
+/* Avatar button */
+.avatar-btn {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: var(--radius-full);
+  display: grid;
+  place-items: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  transition: transform var(--t-fast), box-shadow var(--t-fast);
+}
+.avatar-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.35);
+}
+
+/* ==========================================================================
+   10. CHAT WINDOW & WELCOME SCREEN
+   ========================================================================== */
+.chat-window {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  scroll-behavior: smooth;
+}
+
+/* ── Welcome Screen ── */
+.welcome-screen {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  animation: fadeInUp 0.5s ease;
+}
+.welcome-screen__inner {
+  text-align: center;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+/* Animated glowing orb above the title */
+.welcome-screen__orb {
+  width: 72px; height: 72px;
+  border-radius: var(--radius-full);
+  background: conic-gradient(
+    from 0deg,
+    var(--accent),
+    #f97316,
+    #6366f1,
+    var(--accent)
+  );
+  animation: spinOrb 6s linear infinite;
+  box-shadow: 0 0 40px var(--accent-glow), 0 0 80px rgba(99,102,241,0.15);
+  flex-shrink: 0;
+}
+
+.welcome-screen__title {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  line-height: 1.18;
+}
+.welcome-screen__sub {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  max-width: 400px;
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   11. SUGGESTION CHIPS
+   ========================================================================== */
+.suggestion-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border-radius: var(--radius-full);
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: background-color var(--t-fast), border-color var(--t-fast),
+              color var(--t-fast), box-shadow var(--t-fast), transform var(--t-fast);
+  cursor: pointer;
+}
+.chip i { color: var(--accent); font-size: 0.95rem; }
+.chip:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--accent);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+  transform: translateY(-1px);
+}
+.chip:active { transform: translateY(0); }
+
+/* ==========================================================================
+   12. MESSAGE FEED & BUBBLES
+   ========================================================================== */
+.message-feed {
+  display: none; /* FIX: hidden by default. JS calls showWelcomeScreen(false) to set
+                    display:flex when the first message is sent. Without this, both the
+                    welcome screen and the empty feed were visible simultaneously on load. */
+  flex-direction: column;
+  gap: 6px;
+  padding: 24px 0 16px;
+  min-height: 0;
+}
+
+/* ── Generic message row ── */
+.message {
+  display: flex;
+  gap: 12px;
+  padding: 4px 20px;
+  max-width: 100%;
+  animation: fadeInUp 0.25s ease;
+}
+
+/* User messages — right-aligned */
+.message--user {
+  flex-direction: row-reverse;
+}
+
+/* ── Avatar circle ── */
+.message__avatar {
+  width: 34px; height: 34px;
+  border-radius: var(--radius-full);
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.message--ai .message__avatar {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+  color: var(--text-inverse);
+  box-shadow: 0 0 10px var(--accent-glow);
+  font-family: var(--font-display);
+}
+.message--user .message__avatar {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+}
+
+/* ── Bubble wrapper ── */
+.message__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: min(600px, 75%);
+}
+
+/* ── Bubble ── */
+.message__bubble {
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  line-height: 1.65;
+  font-size: 0.9375rem;
+  word-break: break-word;
+  position: relative;
+}
+
+/* AI bubble style */
+.message--ai .message__bubble {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-top-left-radius: var(--radius-sm);
+  color: var(--text-primary);
+}
+
+/* User bubble style */
+.message--user .message__bubble {
+  background: linear-gradient(135deg, hsl(38, 90%, 55%), hsl(28, 90%, 52%));
+  color: #0d0f14;
+  border-top-right-radius: var(--radius-sm);
+  font-weight: 500;
+}
+
+/* Code blocks inside AI messages */
+.message__bubble pre {
+  background-color: var(--bg-base);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  overflow-x: auto;
+  margin: 10px 0;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+.message__bubble code {
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  background-color: rgba(255,255,255,0.06);
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+.message__bubble pre code {
+  background: none;
+  padding: 0;
+}
+
+/* Paragraph spacing inside AI messages */
+.message__bubble p + p { margin-top: 8px; }
+
+/* ── Message meta row (timestamp + copy) ── */
+.message__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity var(--t-fast);
+}
+.message:hover .message__meta { opacity: 1; }
+.message--user .message__meta { justify-content: flex-end; }
+
+.message__time {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Copy button */
+.copy-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  transition: color var(--t-fast), background-color var(--t-fast);
+}
+.copy-btn:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-elevated);
+}
+.copy-btn i { font-size: 0.8rem; }
+
+/* ==========================================================================
+   13. TYPING INDICATOR
+   -------------------------------------------------------------------------
+   Three animated dots that bounce sequentially, signalling the AI is
+   working. Hidden by default; toggled via JavaScript.
+   ========================================================================== */
+.typing-indicator {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 4px 20px 12px;
+  animation: fadeInUp 0.2s ease;
+}
+
+.typing-indicator__avatar {
+  width: 34px; height: 34px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.8rem;
+  color: var(--text-inverse);
+  flex-shrink: 0;
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.typing-indicator__bubble {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 16px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  border-top-left-radius: var(--radius-sm);
+}
+
+.typing-dot {
+  width: 7px; height: 7px;
+  border-radius: var(--radius-full);
+  background-color: var(--accent);
+  animation: typingBounce 1.2s ease-in-out infinite;
+  opacity: 0.5;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+.typing-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   14. INPUT AREA
+   ========================================================================== */
+.input-area {
+  flex-shrink: 0;
+  padding: 12px 16px 14px;
+  background-color: var(--bg-surface);
+  border-top: 1px solid var(--border);
+}
+
+.input-area__inner { max-width: 760px; margin: 0 auto; }
+
+/* ── Input form wrapper ── */
+.input-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl);
+  padding: 10px 12px 10px 18px;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+  position: relative;
+}
+.input-form:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* Auto-expanding textarea */
+.input-form__textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  resize: none;
+  min-height: 24px;
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding-top: 2px;
+}
+.input-form__textarea::placeholder { color: var(--text-muted); }
+
+/* Character counter */
+.char-counter {
+  position: absolute;
+  bottom: -20px;
+  right: 0;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  pointer-events: none;
+  user-select: none;
+}
+.char-counter.warn { color: var(--warning); }
+.char-counter.danger { color: var(--error); }
+
+/* Send button */
+.btn--send {
+  width: 38px; height: 38px;
+  border-radius: var(--radius-full);
+  background-color: var(--accent);
+  color: var(--text-inverse);
+  display: grid;
+  place-items: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  transition: background-color var(--t-fast), transform var(--t-fast), box-shadow var(--t-fast);
+  position: relative;
+  overflow: hidden;
+}
+.btn--send:enabled:hover {
+  background-color: var(--accent-dim);
+  transform: scale(1.08);
+  box-shadow: 0 0 14px var(--accent-glow);
+}
+.btn--send:disabled {
+  background-color: var(--bg-hover);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* Spinner inside send button */
+.send-spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(0,0,0,0.2);
+  border-top-color: var(--text-inverse);
+  border-radius: var(--radius-full);
+  animation: spin 0.7s linear infinite;
+  position: absolute;
+}
+
+.input-area__disclaimer {
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 10px;
+}
+
+/* ==========================================================================
+   15. SETTINGS MODAL
+   ========================================================================== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(4px);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+.modal-backdrop[hidden] { display: none; }
+
+.modal {
+  width: 100%;
+  max-width: 480px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  animation: slideInUp 0.25s ease;
+  overflow: hidden;
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.modal__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.modal__body {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.modal__footer {
+  padding: 16px 22px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ── Setting groups ── */
+.setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.setting-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.setting-label i { color: var(--accent); }
+
+.setting-input {
+  width: 100%;
+  padding: 10px 14px;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+.setting-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.api-key-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding-right: 8px;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+.api-key-wrapper:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.api-key-wrapper .setting-input {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+.api-key-wrapper .btn-icon { color: var(--text-muted); }
+
+.setting-hint {
+  font-size: 0.775rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Theme options */
+.theme-options {
+  display: flex;
+  gap: 10px;
+}
+.theme-option { cursor: pointer; }
+.theme-option input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
+.theme-option__label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-strong);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  transition: border-color var(--t-fast), color var(--t-fast), background-color var(--t-fast);
+  user-select: none;
+}
+.theme-option input:checked + .theme-option__label {
+  border-color: var(--accent);
+  color: var(--text-primary);
+  background-color: var(--bg-hover);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+.theme-option__label:hover { color: var(--text-primary); }
+
+/* ==========================================================================
+   16. TOAST NOTIFICATION
+   ========================================================================== */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-full);
+  padding: 10px 20px;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-toast);
+  opacity: 0;
+  transition: opacity var(--t-normal), transform var(--t-normal);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.toast[hidden] { display: none; }
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.toast.success { border-color: var(--success); color: var(--success); }
+.toast.error   { border-color: var(--error);   color: var(--error); }
+
+/* ==========================================================================
+   17. BUTTONS & ICON BUTTONS
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color var(--t-fast), box-shadow var(--t-fast),
+              transform var(--t-fast), border-color var(--t-fast);
+  white-space: nowrap;
+}
+.btn--primary {
+  background-color: var(--accent);
+  color: var(--text-inverse);
+}
+.btn--primary:hover {
+  background-color: var(--accent-dim);
+  box-shadow: 0 0 14px var(--accent-glow);
+}
+.btn--sm { padding: 7px 14px; font-size: 0.8125rem; }
+
+.btn--danger {
+  background-color: rgba(245,101,101,0.12);
+  color: var(--error);
+  border: 1px solid rgba(245,101,101,0.25);
+}
+.btn--danger:hover {
+  background-color: rgba(245,101,101,0.22);
+  border-color: var(--error);
+}
+
+/* Generic icon-only button */
+.btn-icon {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-md);
+  display: grid;
+  place-items: center;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  transition: background-color var(--t-fast), color var(--t-fast);
+  flex-shrink: 0;
+}
+.btn-icon:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+.btn-icon:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/*
+ * THEME TOGGLE — always show accent colour so user knows it's clickable.
+ * The icon itself (moon/sun) swaps via JS in applyTheme().
+ */
+.theme-toggle { color: var(--accent) !important; }
+.theme-toggle:hover {
+  background-color: var(--bg-hover);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* ==========================================================================
+   18. ANIMATIONS & KEYFRAMES
+   ========================================================================== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0);   opacity: 0.4; }
+  30%            { transform: translateY(-6px); opacity: 1;   }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spinOrb {
+  to { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   19. LIGHT THEME OVERRIDES
+   -------------------------------------------------------------------------
+   All colour values mapped to their light-mode equivalents.
+   Triggered by setting data-theme="light" on <html>.
+   ========================================================================== */
+[data-theme="light"] {
+  --bg-base:       #f5f6fa;
+  --bg-surface:    #ffffff;
+  --bg-elevated:   #f0f1f7;
+  --bg-hover:      #e8eaf2;
+  --bg-input:      #ffffff;
+
+  --border:        rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.14);
+
+  --text-primary:  #1a1d2e;
+  --text-secondary:#555872;
+  --text-muted:    #9094a8;
+  --text-inverse:  #ffffff;
+
+  --sidebar-bg:    #eceef6;
+
+  --accent-glow:   hsl(38, 94%, 60%, 0.25);
+}
+
+[data-theme="light"] .message--ai .message__bubble {
+  background-color: #ffffff;
+}
+[data-theme="light"] .message__bubble pre {
+  background-color: #f0f1f7;
+}
+[data-theme="light"] .message__bubble code {
+  background-color: rgba(0,0,0,0.05);
+}
+
+/*
+ * SMOOTH THEME TRANSITIONS
+ * These ensure every surface colour animates when the theme switches
+ * rather than snapping instantly.
+ */
+.sidebar,
+.navbar,
+.chat-window,
+.input-area,
+.input-form,
+.modal,
+.message__bubble,
+.history-item,
+.chip,
+.btn-icon {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* ==========================================================================
+   20. RESPONSIVE — TABLET & MOBILE
+   ========================================================================== */
+
+/* ── Tablet (≤ 900px) ── */
+@media (max-width: 900px) {
+  .btn-label { display: none; } /* Hide text in nav new-chat btn */
+  .btn--sm   { padding: 7px 10px; }
+}
+
+/* ── Mobile (≤ 768px) ── */
+@media (max-width: 768px) {
+
+  /*
+   * On mobile the sidebar is removed from the normal flow and slides
+   * in from the left as an overlay when the hamburger is tapped.
+   */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 100%;
+    transform: translateX(-100%); /* hidden off-screen */
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* When .open class is added by JS, slide sidebar into view */
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Show close button on mobile */
+  .sidebar__close { display: grid; }
+
+  /* Show hamburger on mobile */
+  .navbar__hamburger { display: grid; }
+
+  /* Show logo text in navbar center on mobile */
+  .navbar__logo-text { display: block; }
+
+  /* Hide the desktop model badge on mobile to save space */
+  .navbar__model-badge { display: none; }
+
+  /* Reduce message horizontal padding */
+  .message { padding: 4px 12px; }
+
+  /* Cap bubble width to nearly full width on mobile */
+  .message__body { max-width: 88%; }
+
+  /* Welcome screen padding */
+  .welcome-screen { padding: 30px 16px; }
+  .welcome-screen__title { font-size: 1.5rem; }
+
+  /* Suggestion chips — vertical stack on very small screens */
+  .suggestion-chips { flex-direction: column; align-items: stretch; }
+  .chip { justify-content: center; }
+
+  /* Input area */
+  .input-area { padding: 10px 12px 12px; }
+
+  /* Modal */
+  .modal { max-width: 100%; margin: 0; border-radius: var(--radius-xl) var(--radius-xl) 0 0; }
+  .modal-backdrop { align-items: flex-end; padding: 0; }
+}
+
+/* ── Very small screens (≤ 400px) ── */
+@media (max-width: 400px) {
+  .navbar { padding: 0 10px; }
+  .navbar__right { gap: 4px; }
+  .btn--sm { display: none; } /* hide New Chat button in navbar, sidebar has it */
+}
