@@ -38,6 +38,25 @@ This project was built to demonstrate frontend development skills, API integrati
 
 ---
 
+## 🚀 Future Improvements
+
+- User authentication system
+- Cloud chat storage (Firebase/Supabase)
+- AI model switching
+- Voice input support
+- Better animations and UI polish
+- File and image uploads
+- Export chat feature
+- Improved mobile responsiveness
+- Performance optimizations
+- Custom themes and personalization 
+
+##  Repository link 
+https://github.com/japhet996sunday-cell/Novachat-ai
+
+##  live Demo
+
+
 ## 👨‍💻 Author
 
 Japhet Sunday 
